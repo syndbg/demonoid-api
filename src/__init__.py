@@ -1,6 +1,7 @@
-from sys import version_info as python_version
+from sys import version_info as PYTHON_VERSION
 
-if python_version >= (3, 0):
+
+if PYTHON_VERSION >= (3, 0):
     pass
 else:
     pass
