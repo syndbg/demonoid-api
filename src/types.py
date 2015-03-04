@@ -200,8 +200,8 @@ class Category(Constants):
         HIPHOP_RAP = 43
         INDIE = 266
         INDUSTRIAL = 38
-        JPOP = 184
         JAZZ = 29
+        JPOP = 184
         LATIN_AMERICAN = 30
         MELODIC = 40
         METAL = 35
@@ -238,8 +238,8 @@ class Category(Constants):
         HIPHOP_RAP = 248
         INDIE = 267
         INDUSTRIAL = 243
-        JPOP = 252
         JAZZ = 234
+        JPOP = 252
         LATIN_AMERICAN = 235
         MELODIC = 245
         METAL = 240
@@ -295,3 +295,36 @@ class Category(Constants):
         TRAILERS = 215
         WAR = 210
         WESTERN = 211
+
+
+class Language(Constants):
+    ALL = 0
+    ARABIC = 19
+    BULGARIAN = 20
+    CHINESE = 12
+    CROATIAN = 14
+    CZECH = 13
+    DANISH = 11
+    ENGLISH = 1
+    ESTONIAN = 32
+    FARSI = 29
+    FINNISH = 33
+    FRENCH = 3
+    GERMAN = 22
+    GREEK = 24
+    HEBREW = 23
+    HINDI = 31
+    HUNGARIAN = 15
+    ITALIAN = 4
+
+
+class State(Constants):
+    BOTH = 2
+    SEEDED = 0
+    UNSEEDED = 1
+
+
+class TrackedBy(Constants):
+    BOTH = 2
+    DEMONOID = 0
+    EXTERNAL = 1
