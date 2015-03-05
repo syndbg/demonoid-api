@@ -3,7 +3,8 @@ from utils import Constants
 BASE_URL = 'http://www.demonoid.pw/'
 
 
-class Sorting(Constants):
+class SortBy(Constants):
+    DATE = ''  # default
 
     class COMPLETED:
         ASCENDING = 'c'
@@ -337,6 +338,92 @@ class Language(Constants):
     HINDI = 31
     HUNGARIAN = 15
     ITALIAN = 4
+
+
+class Quality(Constants):
+    ALL = 0
+
+    class AUDIO_BOOKS:
+        AAC = 42
+        MP3_128KBPS = 50
+        MP3_192KBPS = 49
+        MP3_256KBPS = 47
+        MP3_64KBPS = 51
+        MP3_OVER_256KBPS = 44
+        MP3_VARIABLE = 48
+        MPC = 43
+        OGG = 46
+        OTHER = 45
+
+    class GAMES:
+        FULL_GAME = 28
+        GAME_RIP = 29
+
+    class JAPANESE_ANIME:
+        DVD = 34
+        HD = 70
+        IPOD = 56
+        OTHER = 36
+        PSP = 58
+        TV = 33
+        VHS = 35
+
+    class MOVIES:
+        BLURAY = 72
+        BLURAY_3D = 71
+        CAM = 3
+        DVD_FULL = 11
+        DVD_RIP = 9
+        HD_1080 = 68
+        HD_720P = 66
+        IPOD = 53
+        KVCD_DVDRIP = 64
+        KVCD_OTHER = 65
+        OTHER = 23
+        PSP = 60
+        REMUX = 73
+        SCREENER_DVD = 7
+        SCREENER_VHS = 6
+        TV_RIP = 8
+        VCD_SVCD = 21
+        VHS_RIP = HD_1080
+
+    class MUSIC:
+        AAC = 18
+        LOSSLESS = 62
+        MP3_128KBPS = 13
+        MP3_192KBPS = 14
+        MP3_256KBPS = 16
+        MP3_64KBPS = 12
+        MP3_OVER_256KBPS = 20
+        MP3_SURROUND = 67
+        MP3_VARIABLE = 15
+        MPC = 19
+        OGG = 17
+        OTHER = 22
+        WMA = 63
+
+    class MUSIC_VIDEOS:
+        DVD = 40
+        IPOD = 57
+        OTHER = 41
+        PSP = 61
+        TV = 38
+        VHS = 39
+
+    class PICTURES:
+        HIGH_RESOLUTION = 30
+        LOW_RESOLUTION = 31
+        MIXED = 32
+
+    class TV:
+        DVD = 26
+        HD = 69
+        IPOD = 54
+        OTHER = 55
+        PSP = 59
+        TV = 24
+        VHS = 25
 
 
 class State(Constants):
