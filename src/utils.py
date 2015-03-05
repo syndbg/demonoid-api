@@ -33,7 +33,11 @@ class URL:
     @property
     def url(self):
         url = self.base_url
-        if not (url.endswith('/') or self.path.startswith('/')):
+        if url.endswith('/') and self.path.startswith('/'):
+            url += self.path[1:]
+        elif url.endswith('/') or self.path.startswith('/'):
+            url += self.path
+        else:
             url += '/' + self.path
         return url
 
