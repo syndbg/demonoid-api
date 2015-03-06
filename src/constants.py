@@ -1,7 +1,5 @@
 from utils import Constants
 
-BASE_URL = 'http://www.demonoid.pw/'
-
 
 class SortBy(Constants):
     DATE = ''  # default

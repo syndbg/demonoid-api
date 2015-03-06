@@ -1,7 +1,7 @@
 import sys
 
 from lxml import html
-from requests import get
+from requests import Session
 
 if sys.version_info >= (3, 0):
     class_type = type
@@ -10,17 +10,18 @@ else:
     class_type = classobj
 
 
-def get_DOM_root(url):
-    response = get(url, headers={'User-Agent': 'Demonoid unofficial API client', 'origin_req_host': 'demonoid.pw'})
-    return html.fromstring(response.text)
+BASE_URL = 'http://www.demonoid.pw/'
 
 
 class URL:
 
-    def __init__(self, base_url, path, params):
+    def __init__(self, base_url=BASE_URL, path='', params={}):
         self.base_url = base_url
         self.path = path
         self.params = params
+
+        self._session = Session()
+        self._DOM = None
 
     def add_params(self, params):
         self.params.update(params)
@@ -40,6 +41,16 @@ class URL:
         else:
             url += '/' + self.path
         return url
+
+    @property
+    def DOM(self, force_fetch=False):
+        if self._DOM is None or force_fetch:
+            response = self.fetch()
+            self._DOM = html.fromstring(response.text)
+        return self._DOM
+
+    def fetch(self):
+        return self._session.get(self.url, params=self.params)
 
     def __str__(self):
         return str(self.url)
