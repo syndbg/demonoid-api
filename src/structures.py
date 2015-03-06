@@ -1,3 +1,4 @@
+import datetime
 import json
 import re
 import sys
@@ -14,6 +15,8 @@ class List:
     # A small mislead in the HTML, that's actually handled.
     # last() - 3 will be handled with Python slicing  in self.items()
     TORRENTS_XPATH = '//*[@id="fslispc"]/table/tr/td[1]/table[6]/tr/td/table/tr[position() > 4]'
+    DATE_TAG_XPATH = './td[@class="added_today"]'
+    DATE_STRPTIME_FORMAT = '%A, %b %d, %Y'
     base_path = ''
 
     def __init__(self, url):
@@ -23,7 +26,8 @@ class List:
     @property
     def items(self):
         if self._torrents is None:
-            rows = self._get_torrent_rows(self.DOM)[:-3]  # trim non torrents
+            rows = self._get_torrent_rows(self._url.DOM)[:-3]  # trim non-torrents
+            self._torrents = self._build_torrents(rows)
         return self._torrents
 
     def __iter__(self):
@@ -33,10 +37,28 @@ class List:
         return DOM.xpath(self.TORRENTS_XPATH)  # the table with all torrent listing
 
     def _build_torrents(self, rows):
-        raise NotImplementedError
+        torrents = []
+        current_date = None
+        for row in rows:
+            date_row = self._get_date_row(row)
+            if date_row:
+                current_date = self._parse_date(date_row)
+            else:
+                torrent = self._build_torrent(row, current_date)
+                torrents.append(torrent)
+        return torrents
 
-    def _is_date_row(self, row):
-        raise NotImplementedError
+    def _parse_date(self, row):
+        text = row[0].text.split('Added on ')
+        # Then it's 'Added today'. Hacky
+        if len(text) < 2:
+            return datetime.date.today()
+        # Looks like
+        # ['', 'Thursday, Mar 05, 2015']
+        return datetime.datetime.strptime(text[1], self.DATE_STRPTIME_FORMAT).date()
+
+    def _get_date_row(self, row):
+        return self._url.DOM.xpath(self.DATE_TAG_XPATH)[0]
 
     def _build_torrent(self, row, date):
         raise NotImplementedError
@@ -141,7 +163,7 @@ class Torrent:
 class Demonoid:
 
     def __init__(self, base_url=BASE_URL):
-        self.base_url = base_url
+        self.url = URL(base_url)
 
     def search(self, query, category=Category.ALL, language=Language.ALL,
                state=State.BOTH, quality=Quality.ALL, tracked_by=TrackedBy.BOTH, sort=SortBy.DATE, page=0, multipage=False):
