@@ -14,7 +14,7 @@ class List:
     # Captures the torrent lists from [4:-3], which is starting from the start torrent list comment and one after the end list comment.
     # A small mislead in the HTML, that's actually handled.
     # last() - 3 will be handled with Python slicing  in self.items()
-    TORRENTS_XPATH = '//*[@id="fslispc"]/table/tr/td[1]/table[6]/tr/td/table/tr[position() > 4]'
+    TORRENTS_LIST_XPATH = '//*[@id="fslispc"]/table/tr/td[1]/table[6]/tr/td/table/tr[position() > 4]'
     DATE_TAG_XPATH = './td[@class="added_today"]'
     DATE_STRPTIME_FORMAT = '%A, %b %d, %Y'
     base_path = ''
@@ -33,19 +33,23 @@ class List:
     def __iter__(self):
         return iter(self.items)
 
-    def _get_torrent_rows(self, DOM):
-        return DOM.xpath(self.TORRENTS_XPATH)  # the table with all torrent listing
+    def _get_torrents_list_rows(self, DOM):
+        return DOM.xpath(self.TORRENTS_LIST_XPATH)
 
     def _build_torrents(self, rows):
         torrents = []
         current_date = None
+        torrent_info = []  # 2 rows hold info about 1 torrent
         for row in rows:
             date_row = self._get_date_row(row)
             if date_row:
                 current_date = self._parse_date(date_row)
+            elif len(torrent_info) < 2:
+                torrent_info.append(row)
             else:
-                torrent = self._build_torrent(row, current_date)
+                torrent = self._build_torrent(torrent_info, current_date)
                 torrents.append(torrent)
+                torrent_info = []
         return torrents
 
     def _parse_date(self, row):
@@ -60,11 +64,12 @@ class List:
     def _get_date_row(self, row):
         return self._url.DOM.xpath(self.DATE_TAG_XPATH)[0]
 
-    def _build_torrent(self, row, date):
+    def _build_torrent(self, rows, date):
         raise NotImplementedError
 
 
 class Paginated(List):
+
     def __init__(self, *args, **kwargs):
         super(Paginated, self).__init__(*args, **kwargs)
         self._multipage = False
@@ -97,6 +102,7 @@ class Paginated(List):
         if number is None:
             return int(self.url.page)
         self.url.page = str(number)
+        return self
 
     def next(self):
         self.page(self.page() + 1)
@@ -112,8 +118,8 @@ class Torrent:
     def __init__(self, date, id, title, tracked_by, url, category, sub_category,
                  quality, owner, torrent_link, size, comments, times_completed,
                  seeders, leechers):
-        self.date = date  # as in today, Wednesday, Mar 04, 2015 and etc.
-        self.id = id
+        self.date = date
+        self.id = id  # As '3159986/003226642800/'
         self.title = title
         self.tracked_by = tracked_by
         self.url = url
