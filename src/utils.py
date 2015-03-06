@@ -43,11 +43,15 @@ class URL:
         return url
 
     @property
-    def DOM(self, force_fetch=False):
-        if self._DOM is None or force_fetch:
-            response = self.fetch()
-            self._DOM = html.fromstring(response.text)
+    def DOM(self):
+        if self._DOM is None:
+            self.update_DOM()
         return self._DOM
+
+    def update_DOM(self):
+        response = self.fetch()
+        self._DOM = html.fromstring(response.text)
+        return self
 
     def fetch(self):
         return self._session.get(self.url, params=self.params)
