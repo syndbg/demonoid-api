@@ -2,8 +2,8 @@ import json
 import re
 import sys
 
-from constants import BASE_URL, Category, SortBy, Language, State, TrackedBy, Quality
-from utils import get_DOM_root, URL
+from constants import Category, SortBy, Language, State, TrackedBy, Quality
+from utils import URL
 
 if sys.version_info >= (3, 0):
     unicode = str
@@ -13,24 +13,30 @@ class List:
     # Captures the torrent lists from [4:-3], which is starting from the start torrent list comment and one after the end list comment.
     # A small mislead in the HTML, that's actually handled.
     # last() - 3 will be handled with Python slicing  in self.items()
-    TORRENTS_XPATH = '//*[@id="fslispc"]/table/tr/td[1]/table[3]/tr/td/table/tr[position() > 4]'
+    TORRENTS_XPATH = '//*[@id="fslispc"]/table/tr/td[1]/table[6]/tr/td/table/tr[position() > 4]'
     base_path = ''
 
-    def __init__(self):
-        self._DOM = None
+    def __init__(self, url):
+        self._url = url
+        self._torrents = None
 
     @property
     def items(self):
-        if self._DOM is None:
-            self.DOM = get_DOM_root(self.url)
-        rows = self._get_torrent_rows(self.DOM)[:-3]  # trim non torrents
-        return [self._build_torrent(row) for row in rows]
+        if self._torrents is None:
+            rows = self._get_torrent_rows(self.DOM)[:-3]  # trim non torrents
+        return self._torrents
 
     def __iter__(self):
         return iter(self.items)
 
     def _get_torrent_rows(self, DOM):
         return DOM.xpath(self.TORRENTS_XPATH)  # the table with all torrent listing
+
+    def _build_torrents(self, rows):
+        raise NotImplementedError
+
+    def _is_date_row(self, row):
+        raise NotImplementedError
 
     def _build_torrent(self, row, date):
         raise NotImplementedError
