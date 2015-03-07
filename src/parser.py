@@ -48,11 +48,11 @@ class Parser:
         tags = row.xpath(cls.FIRST_ROW_XPATH)
         category_url = url_instance.combine(tags[0].get('href'))
         title = tags[1].text
-        # work with the incomplete URL for str_id
-        url = tags[1].get('href')
-        str_id = url.split('details/')[1]
+        # work with the incomplete URL to get str_id
+        torrent_url = tags[1].get('href')
+        str_id = torrent_url.split('details/')[1]
         # complete the torrent URL with BASE_URL
-        url = url_instance.combine(url)
+        torrent_url = url_instance.combine(torrent_url)
 
         # means that torrent is external
         if len(tags) == 3:
@@ -61,7 +61,27 @@ class Parser:
             tracked_by = '(external)'
         else:
             tracked_by = 'Demonoid'
-        return [str_id, title, tracked_by, category_url, url]
+        return [str_id, title, tracked_by, category_url, torrent_url]
+
+    @classmethod
+    def parse_second_row(cls, row, url):
+        tags = row.findall('./td')
+        category, subcategory, quality = cls.parse_category_subcategory_and_or_quality(tags[0])
+
+        user_info = tags[1].find('./a')
+        user = user_info.text_content()
+        user_url = url.combine(user_info.get('href'))
+
+        # Two urls - one is spam, second is torrent url.
+        # Don't combine it with BASE_URL, since it's an absolute url.
+        torrent_link = cls.parse_torrent_link(tags[2])
+        size = tags[3].text
+        comments = tags[4].text
+        times_completed = tags[5].text
+        seeders = tags[6].text
+        leechers = tags[7].text
+        return [category, subcategory, quality, user, user_url, torrent_link,
+                size, comments, times_completed, seeders, leechers]
 
     @classmethod
     def parse_category_subcategory_and_or_quality(cls, tags):
@@ -87,26 +107,6 @@ class Parser:
     @staticmethod
     def is_language(params):
         return Language.ALL != int(params['language'])
-
-    @classmethod
-    def parse_second_row(cls, row, url):
-        tags = row.findall('./td')
-        category, subcategory, quality = cls.parse_category_subcategory_and_or_quality(tags[0])
-
-        user_info = tags[1].find('./a')
-        user = user_info.text_content()
-        user_url = url.combine(user_info.get('href'))
-
-        # Two urls - one is spam, second is torrent url.
-        # Don't combine it with BASE_URL, since it's an absolute url.
-        torrent_link = cls.parse_torrent_link(tags[2])
-        size = tags[3].text
-        comments = tags[4].text
-        times_completed = tags[5].text
-        seeders = tags[6].text
-        leechers = tags[7].text
-        return [category, subcategory, quality, user, user_url, torrent_link,
-                size, comments, times_completed, seeders, leechers]
 
     @staticmethod
     def parse_torrent_link(tags):
