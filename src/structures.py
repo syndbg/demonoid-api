@@ -1,22 +1,69 @@
-import datetime
 import json
 import re
 import sys
 
 from constants import Category, SortBy, Language, State, TrackedBy, Quality
+from parser import Parser
 from utils import URL
 
 if sys.version_info >= (3, 0):
     unicode = str
 
 
+class Torrent:
+
+    def __init__(self, date, id, title, tracked_by, category_url, url, category, subcategory,
+                 quality, user, user_url, torrent_link, size, comments, times_completed,
+                 seeders, leechers):
+        self.date = date
+        self.id = id  # As '3159986/003226642800/'
+        self.title = title
+        self.tracked_by = tracked_by
+        self.category_url = category_url
+        self.url = url
+        self.category = category
+        self.subcategory = subcategory or Category.ALL
+        self.quality = quality or Quality.ALL
+
+        self.user = user
+        self.user_url = user_url
+        self.torrent_link = torrent_link
+        self.size = size
+        self.comments = comments  # integer count
+        self.times_completed = times_completed
+        self.seeders = seeders
+        self.leechers = leechers
+
+        # needing additional requests
+        self._datetime = None
+        self._magnet_link = None
+        self._description = None
+        self._files = None
+        self._comments = None
+
+    @property
+    def datetime(self):
+        # exact date and time
+        raise NotImplementedError
+
+    @property
+    def magnet_link(self):
+        raise NotImplementedError
+
+    @property
+    def files(self):
+        raise NotImplementedError
+
+    # to be updated
+    def to_json(self):
+        raise NotImplementedError
+        # return json.dumps(data)
+
+    def __repr__(self):
+        return '{0} by {1}'.format(self.title, self.user)
+
+
 class List:
-    # Captures the torrent lists from [4:-3], which is starting from the start torrent list comment and one after the end list comment.
-    # A small mislead in the HTML, that's actually handled.
-    # last() - 3 will be handled with Python slicing  in self.items()
-    TORRENTS_LIST_XPATH = '//*[@id="fslispc"]/table/tr/td[1]/table[6]/tr/td/table/tr[position() > 4]'
-    DATE_TAG_XPATH = './td[@class="added_today"]'
-    DATE_STRPTIME_FORMAT = '%A, %b %d, %Y'
     base_path = ''
 
     def __init__(self, url):
@@ -26,24 +73,21 @@ class List:
     @property
     def items(self):
         if self._torrents is None:
-            rows = self._get_torrent_rows(self._url.DOM)[:-3]  # trim non-torrents
+            rows = self._get_torrent_rows()
             self._torrents = self._build_torrents(rows)
         return self._torrents
 
     def __iter__(self):
         return iter(self.items)
 
-    def _get_torrents_list_rows(self, DOM):
-        return DOM.xpath(self.TORRENTS_LIST_XPATH)
-
     def _build_torrents(self, rows):
         torrents = []
         current_date = None
         torrent_info = []  # 2 rows hold info about 1 torrent
         for row in rows:
-            date_row = self._get_date_row(row)
+            date_row = Parser.get_date_row(row)
             if date_row:
-                current_date = self._parse_date(date_row)
+                current_date = Parser.parse_date(date_row)
             elif len(torrent_info) < 2:
                 torrent_info.append(row)
             else:
@@ -52,20 +96,11 @@ class List:
                 torrent_info = []
         return torrents
 
-    def _parse_date(self, row):
-        text = row[0].text.split('Added on ')
-        # Then it's 'Added today'. Hacky
-        if len(text) < 2:
-            return datetime.date.today()
-        # Looks like
-        # ['', 'Thursday, Mar 05, 2015']
-        return datetime.datetime.strptime(text[1], self.DATE_STRPTIME_FORMAT).date()
-
-    def _get_date_row(self, row):
-        return self._url.DOM.xpath(self.DATE_TAG_XPATH)[0]
-
     def _build_torrent(self, rows, date):
-        raise NotImplementedError
+        first_row_args = Parser.parse_first_row(rows[0])
+        second_row_args = Parser.parse_second_row(rows[1])
+        args = [date] + first_row_args + second_row_args
+        return Torrent(*args)
 
 
 class Paginated(List):
@@ -113,62 +148,9 @@ class Paginated(List):
         return self
 
 
-class Torrent:
-
-    def __init__(self, date, id, title, tracked_by, url, category, sub_category,
-                 quality, owner, torrent_link, size, comments, times_completed,
-                 seeders, leechers):
-        self.date = date
-        self.id = id  # As '3159986/003226642800/'
-        self.title = title
-        self.tracked_by = tracked_by
-        self.url = url
-        self.category = category
-        self.sub_category = sub_category
-        self.quality = quality
-
-        self.owner = owner
-        self.torrent_link = torrent_link
-        self.size = size
-        self.comments = comments  # integer count
-        self.times_completed = times_completed
-        self.seeders = seeders
-        self.leechers = leechers
-
-        # needing additional requests
-        self._datetime = None
-        self._magnet_link = None
-        self._description = None
-        self._files = None
-        self._comments = None
-
-    @property
-    def datetime(self):
-        # exact date and time
-        raise NotImplementedError
-
-    @property
-    def magnet_link(self):
-        raise NotImplementedError
-
-    @property
-    def files(self):
-        raise NotImplementedError
-
-    # to be updated
-    def to_json(self):
-        data = {'id': self.id, 'title': self.title, 'url': self.url, 'self.category': self.category, 'sub_category': self.sub_category,
-                'torrent_link': self.torrent_link, 'magnet_link': self.magnet_link, 'size': self.size, 'user': self.user,
-                'seeders': self.seeders, 'leechers': self.leechers}
-        return json.dumps(data)
-
-    def __repr__(self):
-        return '{0} by {1}'.format(self.title, self.user)
-
-
 class Demonoid:
 
-    def __init__(self, base_url=BASE_URL):
+    def __init__(self, base_url=''):
         self.url = URL(base_url)
 
     def search(self, query, category=Category.ALL, language=Language.ALL,
