@@ -30,7 +30,7 @@ class Parser:
         params_dict = {}
         for pair in params_string.split('&'):
             param, value = pair.split('=')
-            if value:
+            if value and not ignore_empty:
                 params_dict[param] = value
         return params_dict
 

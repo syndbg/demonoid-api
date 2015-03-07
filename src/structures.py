@@ -1,5 +1,4 @@
 import json
-import re
 import sys
 
 from constants import Category, SortBy, Language, State, TrackedBy, Quality
@@ -73,9 +72,13 @@ class List:
     @property
     def items(self):
         if self._torrents is None:
-            rows = Parser.get_torrent_rows(self._url.DOM)
-            self._torrents = self._build_torrents(rows)
+            self._update_torrents()
         return self._torrents
+
+    def _update_torrents(self):
+        rows = Parser.get_torrent_rows(self._url.DOM)
+        self._torrents = self._build_torrents(rows)
+        return self
 
     def __iter__(self):
         return iter(self.items)
@@ -106,28 +109,18 @@ class List:
 class Paginated(List):
 
     def __init__(self, *args, **kwargs):
-        super(Paginated, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._multipage = False
 
     def items(self):
-        if self._multipage:
-            while True:
-                # Pool for more torrents
-                items = super(Paginated, self).items()
-                # Stop if no more torrents
-                first = next(items, None)
-                if first is None:
-                    raise StopIteration()
-                # Yield them if not
-                else:
-                    yield first
-                    for item in items:
-                        yield item
-                # Go to the next page
+        if self._torrents is None:
+            self._update_torrents()
+            if self._multipage:
                 self.next()
-        else:
-            for item in super(Paginated, self).items():
-                yield item
+                new_torrents =
+                while True:
+
+        return self._torrents
 
     def multipage(self):
         self._multipage = True
