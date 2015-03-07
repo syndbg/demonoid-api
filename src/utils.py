@@ -15,8 +15,8 @@ BASE_URL = 'http://www.demonoid.pw/'
 
 class URL:
 
-    def __init__(self, base_url=BASE_URL, path='', params={}):
-        self.base_url = base_url
+    def __init__(self, base_url, path='', params={}):
+        self.base_url = base_url or BASE_URL
         self.path = path
         self.params = params
 
@@ -33,13 +33,16 @@ class URL:
 
     @property
     def url(self):
+        return self.combine(self.path)
+
+    def combine(self, path):
         url = self.base_url
-        if url.endswith('/') and self.path.startswith('/'):
-            url += self.path[1:]
-        elif url.endswith('/') or self.path.startswith('/'):
-            url += self.path
+        if url.endswith('/') and path.startswith('/'):
+            url += path[1:]
+        elif url.endswith('/') or path.startswith('/'):
+            url += path
         else:
-            url += '/' + self.path
+            url += '/' + path
         return url
 
     @property
