@@ -73,7 +73,7 @@ class List:
     @property
     def items(self):
         if self._torrents is None:
-            rows = self._get_torrent_rows()
+            rows = Parser.get_torrent_rows(self._url.DOM)
             self._torrents = self._build_torrents(rows)
         return self._torrents
 
