@@ -16,7 +16,7 @@ class Parser:
         return dom.xpath(cls.TORRENTS_LIST_XPATH)[:-3]  # trim non-torrents
 
     @classmethod
-    def _get_date_row(cls, dom):
+    def get_date_row(cls, dom):
         return dom.xpath(cls.DATE_TAG_XPATH)[0]
 
     @staticmethod
@@ -34,18 +34,6 @@ class Parser:
                 params_dict[param] = value
         return params_dict
 
-    @staticmethod
-    def is_subcategory(params):
-        return Category.ALL != int(params['subcategory'])
-
-    @staticmethod
-    def is_quality(params):
-        return Quality.ALL != int(params['quality'])
-
-    @staticmethod
-    def is_language(params):
-        return Language.ALL != int(params['language'])
-
     @classmethod
     def parse_date(cls, row):
         text = row[0].text.split('Added on ')
@@ -56,15 +44,15 @@ class Parser:
         return datetime.strptime(text[1], cls.DATE_STRPTIME_FORMAT).date()
 
     @classmethod
-    def parse_first_row(cls, row, url):
+    def parse_first_row(cls, row, url_instance):
         tags = row.xpath(cls.FIRST_ROW_XPATH)
-        category_url = url.combine(tags[0].get('href'))
+        category_url = url_instance.combine(tags[0].get('href'))
         title = tags[1].text
         # work with the incomplete URL for str_id
         url = tags[1].get('href')
         str_id = url.split('details/')[1]
         # complete the torrent URL with BASE_URL
-        url = url.combine(url)
+        url = url_instance.combine(url)
 
         # means that torrent is external
         if len(tags) == 3:
@@ -89,10 +77,16 @@ class Parser:
         return output
 
     @staticmethod
-    def parse_torrent_link(tags):
-        anchor_tags = tags.findall('./a')
-        link_tag = anchor_tags[0] if len(anchor_tags) < 2 else anchor_tags[1]
-        return link_tag.get('href')
+    def is_subcategory(params):
+        return Category.ALL != int(params['subcategory'])
+
+    @staticmethod
+    def is_quality(params):
+        return Quality.ALL != int(params['quality'])
+
+    @staticmethod
+    def is_language(params):
+        return Language.ALL != int(params['language'])
 
     @classmethod
     def parse_second_row(cls, row, url):
@@ -113,3 +107,9 @@ class Parser:
         leechers = tags[7].text
         return [category, subcategory, quality, user, user_url, torrent_link,
                 size, comments, times_completed, seeders, leechers]
+
+    @staticmethod
+    def parse_torrent_link(tags):
+        anchor_tags = tags.findall('./a')
+        link_tag = anchor_tags[0] if len(anchor_tags) < 2 else anchor_tags[1]
+        return link_tag.get('href')
