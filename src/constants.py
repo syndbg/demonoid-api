@@ -7,9 +7,6 @@ else:
     class_type = classobj
 
 
-__all__ = ['SortBy', 'Category', 'Quality', 'Language', 'State', 'TrackedBy']
-
-
 # Borrowed from https://github.com/karan/TPB and modified.
 # Props to Karan.
 class ConstantType(type):

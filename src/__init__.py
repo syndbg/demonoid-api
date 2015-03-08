@@ -1,3 +1,3 @@
-from .constants import *
-from .structures import *
-from .utils import BASE_URL, URL
+from .constants import Category, SortBy, Quality, Language, TrackedBy, State
+from .structures import Torrent, List, Paginated, Search, Demonoid
+from .urls import BASE_URL, URL
