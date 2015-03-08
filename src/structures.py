@@ -1,13 +1,10 @@
 import json
 import sys
 
-from .exceptions import HeadReachedException
+from .exceptions import HeadReachedException, InvalidSearchParameterException
 from .constants import Category, SortBy, Language, State, TrackedBy, Quality
 from .parser import Parser
-from .utils import URL
-
-if sys.version_info >= (3, 0):
-    unicode = str
+from .urls import URL
 
 
 class Torrent(object):
@@ -67,6 +64,7 @@ class List(object):
     base_path = ''
 
     def __init__(self, url):
+        url.path = self.base_path
         self._url = url
         self._torrents = None
 
@@ -109,10 +107,10 @@ class List(object):
 
 class Paginated(List):
 
-    def __init__(self, url, page=1, multipage=False):
+    def __init__(self, url, page=None, multipage=None):
         super(Paginated, self).__init__(url)
-        self._url.params['page'] = page
-        self.multipage = multipage
+        self._url.params['page'] = page or 1
+        self.multipage = multipage or False
 
     @property
     def _page(self):
@@ -132,15 +130,19 @@ class Paginated(List):
                     self._torrents.extend(new_torrents)
         return self._torrents
 
-    def multipage(self):
+    def make_multipage(self):
         self.multipage = True
         return self
 
-    def page(self, number):
-        if not isinstance(number, int):
-            number = int(number)
-        self._url.params['page'] = number
-        return self
+    @property
+    def page(self):
+        return self._url.params['page']
+
+    @page.setter
+    def page(self, value):
+        if not isinstance(value, int):
+            value = int(value)
+        self._url.params['page'] = value
 
     def next(self):
         self.page(self.page + 1)
@@ -148,9 +150,35 @@ class Paginated(List):
 
     def previous(self):
         if self.page <= 1:
-            raise HeadReachedException
+            raise HeadReachedException('Reached head of paginated list. Can\'t go to previous.')
         self.page(self.page - 1)
         return self
+
+
+class Search(Paginated):
+    base_path = '/files'
+
+    def __init__(self, url, **kwargs):
+        page = kwargs.pop('page', None)
+        multipage = kwargs.pop('multipage', None)
+        super(Search, self).__init__(url, page, multipage)
+
+    def _validate_search_params(self, params):
+        valid_params = ('query', 'category', 'subcategory', 'quality', 'language', 'seeded', 'external', 'sort', 'search')
+        for param in params:
+            if param not in valid_params:
+                name = params[param]
+                valid_params_names = ','.join(valid_params)
+                raise InvalidSearchParameterException('{} is not a valid search criteria. \
+                                              The valid parameters are {1}'.format(name, valid_params_names))
+
+    @property
+    def query(self):
+        return self._url.params['query']
+
+    @query.setter
+    def query(self, value):
+        self._url.params['query'] = value
 
 
 class Demonoid(object):
