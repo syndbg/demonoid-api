@@ -1,6 +1,8 @@
 from datetime import date, datetime
 from constants import Category, Language, Quality
 
+__all__ = ['Parser']
+
 
 class Parser:
     # Captures the torrent lists from [4:-3], which is starting from the start torrent list comment and one after the end list comment.
@@ -11,13 +13,13 @@ class Parser:
     DATE_STRPTIME_FORMAT = '%A, %b %d, %Y'
     FIRST_ROW_XPATH = './td/a | ./td/font'
 
-    @classmethod
-    def get_torrents_rows(cls, dom):
-        return dom.xpath(cls.TORRENTS_LIST_XPATH)[:-3]  # trim non-torrents
+    @staticmethod
+    def get_torrents_rows(dom):
+        return dom.xpath(Parser.TORRENTS_LIST_XPATH)[:-3]  # trim non-torrents
 
-    @classmethod
-    def get_date_row(cls, dom):
-        return dom.xpath(cls.DATE_TAG_XPATH)[0]
+    @staticmethod
+    def get_date_row(dom):
+        return dom.xpath(Parser.DATE_TAG_XPATH)[0]
 
     @staticmethod
     def get_params(url, ignore_empty=True):
@@ -34,18 +36,18 @@ class Parser:
                 params_dict[param] = value
         return params_dict
 
-    @classmethod
-    def parse_date(cls, row):
+    @staticmethod
+    def parse_date(row):
         text = row[0].text.split('Added on ')
         # Then it's 'Added today'. Hacky
         if len(text) < 2:
             return date.today()
         # Looks like ['', 'Thursday, Mar 05, 2015']
-        return datetime.strptime(text[1], cls.DATE_STRPTIME_FORMAT).date()
+        return datetime.strptime(text[1], Parser.DATE_STRPTIME_FORMAT).date()
 
-    @classmethod
-    def parse_first_row(cls, row, url_instance):
-        tags = row.xpath(cls.FIRST_ROW_XPATH)
+    @staticmethod
+    def parse_first_row(row, url_instance):
+        tags = row.xpath(Parser.FIRST_ROW_XPATH)
         category_url = url_instance.combine(tags[0].get('href'))
         title = tags[1].text
         # work with the incomplete URL to get str_id
@@ -63,10 +65,10 @@ class Parser:
             tracked_by = 'Demonoid'
         return [str_id, title, tracked_by, category_url, torrent_url]
 
-    @classmethod
-    def parse_second_row(cls, row, url):
+    @staticmethod
+    def parse_second_row(row, url):
         tags = row.findall('./td')
-        category, subcategory, quality = cls.parse_category_subcategory_and_or_quality(tags[0])
+        category, subcategory, quality = Parser.parse_category_subcategory_and_or_quality(tags[0])
 
         user_info = tags[1].find('./a')
         user = user_info.text_content()
@@ -74,7 +76,7 @@ class Parser:
 
         # Two urls - one is spam, second is torrent url.
         # Don't combine it with BASE_URL, since it's an absolute url.
-        torrent_link = cls.parse_torrent_link(tags[2])
+        torrent_link = Parser.parse_torrent_link(tags[2])
         size = tags[3].text
         comments = tags[4].text
         times_completed = tags[5].text
@@ -83,16 +85,16 @@ class Parser:
         return [category, subcategory, quality, user, user_url, torrent_link,
                 size, comments, times_completed, seeders, leechers]
 
-    @classmethod
-    def parse_category_subcategory_and_or_quality(cls, tags):
+    @staticmethod
+    def parse_category_subcategory_and_or_quality(tags):
         output = {'category': None, 'subcategory': None, 'quality': None}
         for tag in tags:
             url = tag.get('href')
-            if cls.is_subcategory(url):
+            if Parser.is_subcategory(url):
                 output['subcategory'] = tag.text
-            elif cls.is_quality(url):
+            elif Parser.is_quality(url):
                 output['quality'] = tag.text
-            elif cls.is_language(url):
+            elif Parser.is_language(url):
                 output['language'] = tag.text
         return output
 
