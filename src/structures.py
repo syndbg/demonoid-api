@@ -109,7 +109,7 @@ class List(object):
 
 class Paginated(List):
 
-    def __init__(self, url, page=0, multipage=False):
+    def __init__(self, url, page=1, multipage=False):
         super(Paginated, self).__init__(url)
         self._url.params['page'] = page
         self.multipage = multipage
@@ -159,7 +159,7 @@ class Demonoid(object):
         self.url = URL(base_url)
 
     def search(self, query, category=Category.ALL, language=Language.ALL,
-               state=State.BOTH, quality=Quality.ALL, tracked_by=TrackedBy.BOTH, sort=SortBy.DATE, page=0, multipage=False):
+               state=State.BOTH, quality=Quality.ALL, tracked_by=TrackedBy.BOTH, sort=SortBy.DATE, page=1, multipage=False):
         search = Search(self.base_url, query, page, order, category)
         if multipage:
             search.multipage()
