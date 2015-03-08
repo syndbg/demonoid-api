@@ -66,6 +66,11 @@ Constants = ConstantType('Constants', (object,), {})
 # END OF COPIED
 
 
+class SearchBy(Constants):
+    ALL = 0
+    TORRENT_NAMES_ONLY = 1
+
+
 class SortBy(Constants):
     DATE = ''  # default
 
