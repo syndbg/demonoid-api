@@ -162,9 +162,16 @@ class Search(Paginated):
         page = kwargs.pop('page', None)
         multipage = kwargs.pop('multipage', None)
         super(Search, self).__init__(url, page, multipage)
+        kwargs.pop('url', None)  # avoid url being detected as invalid param
+        self.modify(kwargs)
 
-    def _validate_search_params(self, params):
-        valid_params = ('query', 'category', 'subcategory', 'quality', 'language', 'seeded', 'external', 'sort', 'search')
+    def modify(self, **params):
+        self._validate_params(params)
+        self._url.params.update(params)
+
+    def _validate_params(self, params):
+        valid_params = ('query', 'category', 'subcategory', 'quality',
+                        'language', 'seeded', 'external', 'sort', 'search')
         for param in params:
             if param not in valid_params:
                 name = params[param]
@@ -180,21 +187,17 @@ class Search(Paginated):
     def query(self, value):
         self._url.params['query'] = value
 
+    # TO-DO. Needs update in Constants type and Torrent members, before it's possible.
+    def filter(self, **params):
+        self._validate_search_params(params)
+        raise NotImplementedError
+
 
 class Demonoid(object):
 
     def __init__(self, base_url=''):
         self.url = URL(base_url)
 
-    def search(self, query, category=Category.ALL, language=Language.ALL,
-               state=State.BOTH, quality=Quality.ALL, tracked_by=TrackedBy.BOTH, sort=SortBy.DATE, page=1, multipage=False):
-        search = Search(self.base_url, query, page, order, category)
-        if multipage:
-            search.multipage()
+    def search(self, **kwargs):
+        search = Search(**kwargs)
         return search
-
-    # def recent(self, page=0):
-        # return Recent(self.base_url, page)
-
-    def top(self, category=0):
-        return Top(self.base_url, category)
