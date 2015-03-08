@@ -158,11 +158,11 @@ class Paginated(List):
 class Search(Paginated):
     base_path = '/files'
 
-    def __init__(self, url, **kwargs):
+    def __init__(self, **kwargs):
+        url = kwargs.pop('url')
         page = kwargs.pop('page', None)
         multipage = kwargs.pop('multipage', None)
         super(Search, self).__init__(url, page, multipage)
-        kwargs.pop('url', None)  # avoid url being detected as invalid param
         self.modify(kwargs)
 
     def modify(self, **params):
