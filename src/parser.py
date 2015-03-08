@@ -1,5 +1,6 @@
 from datetime import date, datetime
-from constants import Category, Language, Quality
+
+from .constants import Category, Language, Quality
 
 __all__ = ['Parser']
 

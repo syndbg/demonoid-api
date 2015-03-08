@@ -1,4 +1,4 @@
-from utils import Constants
+from .utils import Constants
 
 
 class SortBy(Constants):

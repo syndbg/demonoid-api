@@ -1,15 +1,16 @@
 import json
 import sys
 
-from constants import Category, SortBy, Language, State, TrackedBy, Quality
-from parser import Parser
-from utils import URL
+from .exceptions import HeadReachedException
+from .constants import Category, SortBy, Language, State, TrackedBy, Quality
+from .parser import Parser
+from .utils import URL
 
 if sys.version_info >= (3, 0):
     unicode = str
 
 
-class Torrent:
+class Torrent(object):
 
     def __init__(self, date, id, title, tracked_by, category_url, url, category, subcategory,
                  quality, user, user_url, torrent_link, size, comments, times_completed,
@@ -62,7 +63,7 @@ class Torrent:
         return '{0} by {1}'.format(self.title, self.user)
 
 
-class List:
+class List(object):
     base_path = ''
 
     def __init__(self, url):
@@ -76,7 +77,7 @@ class List:
         return self._torrents
 
     def _update_torrents(self):
-        rows = Parser.get_torrent_rows(self._url.DOM)
+        rows = Parser.get_torrents_rows(self._url.DOM)
         self._torrents = self._build_torrents(rows)
         return self
 
@@ -108,40 +109,51 @@ class List:
 
 class Paginated(List):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._multipage = False
+    def __init__(self, url, page=0, multipage=False):
+        super(Paginated, self).__init__(url)
+        self._url.params['page'] = page
+        self.multipage = multipage
 
+    @property
+    def _page(self):
+        return self._url.params['page']
+
+    @property
     def items(self):
         if self._torrents is None:
             self._update_torrents()
-            if self._multipage:
-                self.next()
-                new_torrents =
+            if self.multipage:
                 while True:
-
+                    self.next()
+                    self._url.update_DOM()
+                    new_torrents = Parser.get_torrents_rows(self._url.DOM)
+                    if not new_torrents:
+                        break
+                    self._torrents.extend(new_torrents)
         return self._torrents
 
     def multipage(self):
-        self._multipage = True
+        self.multipage = True
         return self
 
-    def page(self, number=None):
-        if number is None:
-            return int(self.url.page)
-        self.url.page = str(number)
+    def page(self, number):
+        if not isinstance(number, int):
+            number = int(number)
+        self._url.params['page'] = number
         return self
 
     def next(self):
-        self.page(self.page() + 1)
+        self.page(self.page + 1)
         return self
 
     def previous(self):
-        self.page(self.page() - 1)
+        if self.page <= 1:
+            raise HeadReachedException
+        self.page(self.page - 1)
         return self
 
 
-class Demonoid:
+class Demonoid(object):
 
     def __init__(self, base_url=''):
         self.url = URL(base_url)
