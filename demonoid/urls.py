@@ -106,7 +106,7 @@ class Url:
         """
         Makes a request to combined url with `self._params` as parameters.
         If the server at combined url responds with Client or Server error, raises an exception.
-        :return: returns the response from combined url
+        :return: the response from combined url
         :rtype: requests.models.Response
         """
         response = self._session.get(self.url, params=self.params)
