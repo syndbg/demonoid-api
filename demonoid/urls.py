@@ -8,7 +8,7 @@ BASE_URL = 'http://www.demonoid.pw/'
 class URL:
 
     """
-       URL handles building urls with a base url, path and params.
+       The URL class handles building urls with a base url, path and params.
        Also it makes requests to URLs and builds a DOM element with lxml.
        It shouldn't be used directly.
     """
