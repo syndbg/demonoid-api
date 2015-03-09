@@ -4,7 +4,7 @@ import sys
 from .exceptions import HeadReachedException, InvalidSearchParameterException
 from .constants import Category, SortBy, Language, State, TrackedBy, Quality
 from .parser import Parser
-from .urls import URL
+from .urls import Url
 
 
 class Torrent(object):
@@ -195,8 +195,8 @@ class Search(Paginated):
 
 class Demonoid(object):
 
-    def __init__(self, base_url=''):
-        self.url = URL(base_url)
+    def __init__(self, base_url=None):
+        self.url = Url(base_url)
 
     def search(self, **kwargs):
         search = Search(**kwargs)

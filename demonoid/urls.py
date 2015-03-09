@@ -2,21 +2,21 @@ from lxml import html
 from requests import Session
 
 
-BASE_URL = 'http://www.demonoid.pw/'
-
-
-class URL:
-
+class Url:
     """
-       The URL class handles building urls with a base url, path and params.
-       Also it makes requests to URLs and builds a DOM element with lxml.
+       The Url class handles building urls with a base url, path and params.
+       Also it makes requests to urls and builds a DOM element with lxml.
        It shouldn't be used directly.
+
+       :attr: DEFAULT_BASE_URL is 'http://www.demonoid.pw/'. Changing it directly isn't recommended. Instead pass a `base_url` parameter to `Url` class.
     """
+
+    DEFAULT_BASE_URL = 'http://www.demonoid.pw/'
 
     def __init__(self, base_url=None, path=None, params=None):
         """
-        Creates a URL instance.
-        :param base_url: The url to build from. Default is urls.BASE_URL
+        Creates a Url instance.
+        :param base_url: The url to build from. Default is Url.DEFAULT_BASE_URL
         :type base_url: str or None
         :param path: The path to append to the base url. Default is ''
         :type base_url: str or None
@@ -24,7 +24,7 @@ class URL:
         :type params: dict or None
         """
 
-        self.base_url = base_url or BASE_URL
+        self.base_url = base_url or self.DEFAULT_BASE_URL
         self.path = path or ''
         self.params = params or {}
 
@@ -37,7 +37,7 @@ class URL:
         :param params: Parameters to add
         :type params: dict
         :return: self
-        :rtype: URL
+        :rtype: Url
         """
         self.params.update(params)
         return self
@@ -48,7 +48,7 @@ class URL:
         :param str key: Parameter name
         :param str value: Parameter value
         :return: self
-        :rtype: URL
+        :rtype: Url
         """
         self.params[key] = value
         return self
@@ -56,8 +56,8 @@ class URL:
     @property
     def url(self):
         """
-        Using `self.combine`, gives the URL that will be used to make requests to.
-        :return: Combined self.base_url and self.path
+        Using `self.combine`, gives the url that will be used to make requests to.
+        :return: combined self.base_url and self.path
         :rtype: string
         """
         return self.combine(self.path)
@@ -65,7 +65,7 @@ class URL:
     def combine(self, path):
         """
         Gives a combined `self.BASE_URL` with the given `path`.
-        Used to build URLs without modifying the current `self.path`.
+        Used to build urls without modifying the current `self.path`.
         Handles conflicts of trailing or preceding slashes.
         :param str path: `path` to append
         :return: combined `self.base_url` and given `path`.
@@ -83,7 +83,7 @@ class URL:
     @property
     def DOM(self):
         """
-        Lazy gets (or builds if needed) a DOM from response's text of combined URL.
+        Lazy gets (or builds if needed) a DOM from response's text of combined url.
         :return: DOM built from response
         :rtype: lxml.HtmlElement
         """
@@ -96,7 +96,7 @@ class URL:
         Makes a request and updates `self._DOM`.
         Worth using only if you manually change `self.base_url` or `self.path`.
         :return: self
-        :rtype: url
+        :rtype: Url
         """
         response = self.fetch()
         self._DOM = html.fromstring(response.text)
@@ -104,9 +104,9 @@ class URL:
 
     def fetch(self):
         """
-        Makes a request to combined URL with `self._params` as parameters.
-        If the URL server responds with Client or Server error, raises an exception.
-        :return: returns the response from URL
+        Makes a request to combined url with `self._params` as parameters.
+        If the server at combined url responds with Client or Server error, raises an exception.
+        :return: returns the response from combined url
         :rtype: requests.models.Response
         """
         response = self._session.get(self.url, params=self.params)
@@ -115,10 +115,10 @@ class URL:
 
     def __str__(self):
         """
-        String representation of combined URL.
+        String representation of combined url.
         However as it is now, it doesn't add the params from `self.params`.
         Sorry, it'll be fixed
-        :return: combined URL.
+        :return: combined url.
         :rtype: str
         """
         return str(self.url)
