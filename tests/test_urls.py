@@ -28,21 +28,31 @@ class UrlTests(TestCase):
 
     def test_add_params(self):
         u = URL()
+        params = {'page': 7, 'category': 0}
+        u.add_params(params)
+        self.assertEqual(params, u.params)
 
     def test_add_param(self):
-        pass
+        u = URL()
+        u.add_param('page', 7)
+        self.assertEqual({'page': 7}, u.params)
 
     def test_url_property(self):
-        pass
+        u = URL(BASE_URL, 'files')
+        self.assertEqual(BASE_URL + 'files', u.url)
 
-    def test_combine_path_with_trailing_slash(self):
-        pass
+    def test_combine_path_when_trailing_slash_base_url(self):
+        u = URL(BASE_URL)
+        self.assertEqual(BASE_URL + 'files', u.combine('files'))
 
-    def test_combine_path_without_trailing_slash(self):
-        pass
+    def test_combine_path_when_base_url_without_trailing_slash(self):
+        base_url = 'http://demonoid.pw'
+        u = URL(base_url)
+        self.assertEqual(base_url + '/files', u.combine('files'))
 
-    def test_combine_path_with_trailing_slash_and_url_with_trailing_slash(self):
-        pass
+    def test_combine_path_with_trailing_slash_and_url_with_preceding_slash(self):
+        u = URL(BASE_URL)
+        self.assertEqual(BASE_URL + 'files', u.combine('/files'))
 
     def test_DOM_property_updates_DOM_when_called_for_the_first_time(self):
         pass

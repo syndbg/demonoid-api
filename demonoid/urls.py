@@ -7,10 +7,10 @@ BASE_URL = 'http://www.demonoid.pw/'
 
 class URL:
 
-    def __init__(self, base_url=None, path='', params={}):
+    def __init__(self, base_url=None, path=None, params=None):
         self.base_url = base_url or BASE_URL
-        self.path = path
-        self.params = params
+        self.path = path or ''
+        self.params = params or {}
 
         self._session = Session()
         self._DOM = None
