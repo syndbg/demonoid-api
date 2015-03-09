@@ -7,7 +7,23 @@ BASE_URL = 'http://www.demonoid.pw/'
 
 class URL:
 
+    """
+       URL handles building urls with a base url, path and params.
+       Also it makes requests to URLs and builds a DOM element with lxml.
+       It shouldn't be used directly.
+    """
+
     def __init__(self, base_url=None, path=None, params=None):
+        """
+        Creates a URL instance.
+        :param base_url: The url to build from. Default is urls.BASE_URL
+        :type base_url: str or None
+        :param path: The path to append to the base url. Default is ''
+        :type base_url: str or None
+        :param params: The parameters to pass to the request. Default is {}
+        :type params: dict or None
+        """
+
         self.base_url = base_url or BASE_URL
         self.path = path or ''
         self.params = params or {}
@@ -16,15 +32,33 @@ class URL:
         self._DOM = None
 
     def add_params(self, params):
+        """
+        Updates existing `self.params` with given `params`.
+        :param params: Parameters to add
+        :type params: dict
+        :return: self
+        :rtype: URL
+        """
         self.params.update(params)
         return self
 
     def add_param(self, key, value):
+        """
+        Updates or adds a `key`=`value` parameter in existing `self.params`.
+        :param str key: Parameter name
+        :param str value: Parameter value
+        :return: self
+        :rtype: URL
+        """
         self.params[key] = value
         return self
 
     @property
     def url(self):
+        """
+        :return: Combined self.base_url and self.path
+        :rtype: string
+        """
         return self.combine(self.path)
 
     def combine(self, path):
