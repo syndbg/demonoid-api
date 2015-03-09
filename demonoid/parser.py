@@ -2,8 +2,6 @@ from datetime import date, datetime
 
 from .constants import Category, Language, Quality
 
-__all__ = ['Parser']
-
 
 class Parser:
     # Captures the torrent lists from [4:-3], which is starting from the start torrent list comment and one after the end list comment.
