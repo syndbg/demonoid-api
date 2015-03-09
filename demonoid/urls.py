@@ -7,7 +7,7 @@ BASE_URL = 'http://www.demonoid.pw/'
 
 class URL:
 
-    def __init__(self, base_url, path='', params={}):
+    def __init__(self, base_url=None, path='', params={}):
         self.base_url = base_url or BASE_URL
         self.path = path
         self.params = params
@@ -47,6 +47,9 @@ class URL:
         response = self.fetch()
         self._DOM = html.fromstring(response.text)
         return self
+
+    def fetch(self):
+        return self._session.get(self.url, params=self.params)
 
     def __str__(self):
         return str(self.url)

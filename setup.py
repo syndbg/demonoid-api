@@ -11,8 +11,9 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
 setup(
     name='demonoid-api',
     version=VERSION,
-    packages=['src'],
+    packages=['demonoid'],
     install_requires=['requests'],
+    test_suite='tests',
     include_package_data=True,
     license='MIT',
     description='Unofficial demonoid.pw API.',
