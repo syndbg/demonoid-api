@@ -4,9 +4,17 @@ from .constants import Category, Language, Quality
 
 
 class Parser:
-    # Captures the torrent lists from [4:-3], which is starting from the start torrent list comment and one after the end list comment.
-    # A small mislead in the HTML, that's actually handled.
-    # last() - 3 will be handled with Python slicing  in `_get_date_row` method
+    """
+       The Parser is a static class, responsible for parsing HTML elements and text.
+       It shouldn't be used directly.
+
+       :attr: TORRENTS_LIST_XPATH is a XPATH expression used to capture the torrent lists in range [4:-3] from the HTML parent table element.
+        However last() - 3 will be handled with Python slicing  in `get_torrents_rows` method as it's more DRY than writing a really longer XPATH expression.
+       :attr: DATE_TAG_XPATH is a XPATH expression used to capture the HTML parent `tr`'s  `td` element holding the date row.
+       :attr: DATE_STRPTIME_FORMAT is a `datetime`-compliant string used to parse the DATE_TAG's date text.
+       :attr: FIRST_ROW_XPATH is a XPATH used to capture the first torrent's table row's id, title, tracked_by, category_url and torrent_url (torrents consist of 2 table rows).
+    """
+
     TORRENTS_LIST_XPATH = '//*[@id="fslispc"]/table/tr/td[1]/table[6]/tr/td/table/tr[position() > 4]'
     DATE_TAG_XPATH = './td[@class="added_today"]'
     DATE_STRPTIME_FORMAT = '%A, %b %d, %Y'
@@ -14,14 +22,34 @@ class Parser:
 
     @staticmethod
     def get_torrents_rows(dom):
+        """
+        Static method that gets the torrent list rows from the given `dom` by running `TORRENTS_LIST_XPATH` and trims the last() -3 non-torrent rows, which are actually sorting preferences rows.
+        :param lxml.HtmlElement dom: the dom to operate on
+        :return: returns torrent rows
+        :rtype: list of lxml.HtmlElement
+        """
         return dom.xpath(Parser.TORRENTS_LIST_XPATH)[:-3]  # trim non-torrents
 
     @staticmethod
     def get_date_row(dom):
+        """
+        Static method that gets the torrent data element containing the torrents' date. Executes `DATE_TAG_XPATH` on given `dom`.
+        :param lxml.HtmlElement dom: the dom to operate on
+        :return: table data containg torrents' date
+        :rtype: lxml.HtmlElement
+        """
         return dom.xpath(Parser.DATE_TAG_XPATH)[0]
 
     @staticmethod
     def get_params(url, ignore_empty=True):
+        """
+        Static method that parses a given `url` and retrieves `url`'s parameters. Could also ignore empty value parameters.
+        Handles parameters-only urls as `q=banana&peel=false`.
+        :param str url: url to parse
+        :param bool ignore_empty: ignore empty value parameter or not
+        :return: dictionary of params and their values
+        :rtype: dict
+        """
         try:
             params_start_index = url.index('?')
         except ValueError:
@@ -31,13 +59,21 @@ class Parser:
         params_dict = {}
         for pair in params_string.split('&'):
             param, value = pair.split('=')
-            if value and not ignore_empty:
+            if value and ignore_empty:
+                params_dict[param] = value
+            else:
                 params_dict[param] = value
         return params_dict
 
     @staticmethod
-    def parse_date(row):
-        text = row[0].text.split('Added on ')
+    def parse_date(table_data):
+        """
+        Static method that parses a given table data element with `Url.DATE_STRPTIME_FORMAT` and creates a `date` object from td's text contnet.
+        :param lxml.HtmlElement table_data: table_data tag to parse
+        :return: date object from td's text date
+        :rtype: datetime.date
+        """
+        text = table_data[0].text.split('Added on ')
         # Then it's 'Added today'. Hacky
         if len(text) < 2:
             return date.today()
@@ -46,6 +82,14 @@ class Parser:
 
     @staticmethod
     def parse_first_row(row, url_instance):
+        """
+        Static method that parses a given table row element by executing `Parser.FIRST_ROW_XPATH` and scrapping torrent's
+        id, title, tracked by status, category url and torrent url/
+        :param lxml.HtmlElement row: row to parse
+        :param urls.Url url_instance: Url used to combine base url's with scrapped links from tr
+        :return: list of scrapped id, title, tracked by status, category url and torrent url
+        :rtype: list
+        """
         tags = row.xpath(Parser.FIRST_ROW_XPATH)
         category_url = url_instance.combine(tags[0].get('href'))
         title = tags[1].text
