@@ -1,6 +1,13 @@
+from sys import version_info
 from unittest import TestCase
 
-from requests import Session
+if version_info >= (3, 3):
+    from unittest import mock
+else:
+    import mock
+
+from lxml.html import HtmlElement
+from requests import Session, HTTPError, Response
 
 from demonoid.urls import BASE_URL, URL
 
@@ -54,17 +61,39 @@ class UrlTests(TestCase):
         u = URL(BASE_URL)
         self.assertEqual(BASE_URL + 'files', u.combine('/files'))
 
-    def test_DOM_property_updates_DOM_when_called_for_the_first_time(self):
-        pass
+    @mock.patch('demonoid.urls.URL.update_DOM')
+    def test_DOM_property_updates_DOM_when_called_for_the_first_time(self, patched_method):
+        u = URL(BASE_URL)
+        self.assertFalse(patched_method.called)
+        self.assertIsNone(u._DOM)
 
-    def test_DOM_property_reuses_existing_DOM(self):
-        pass
+        self.assertIs(u.DOM, u._DOM)
+        self.assertTrue(patched_method.called)
+
+    @mock.patch('demonoid.urls.URL.update_DOM')
+    def test_DOM_property_reuses_existing_DOM(self, patched_method):
+        u = URL(BASE_URL)
+        u.DOM
+        self.assertEqual(1, patched_method.call_count)
+        u._DOM = 'something'  # manually change it
+        self.assertEqual(1, patched_method.call_count)
 
     def test_update_DOM(self):
-        pass
+        u = URL(BASE_URL)
+        self.assertIs(u, u.update_DOM())
+        self.assertIsInstance(u._DOM, HtmlElement)
 
-    def test_fetch(self):
-        pass
+    def test_fetch_when_base_url_404s(self):
+        u = URL('http://httpbin.org/status/404')
+        with self.assertRaises(HTTPError):
+            u.fetch()
+
+    def test_fetch_when_base_url_200s(self):
+        u = URL(BASE_URL)
+        response = u.fetch()
+        self.assertIsInstance(response, Response)
+        self.assertEqual(200, response.status_code)
 
     def test_string_representation(self):
-        pass
+        u = URL(BASE_URL)
+        self.assertEqual(BASE_URL, str(u))

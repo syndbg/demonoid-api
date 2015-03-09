@@ -49,7 +49,9 @@ class URL:
         return self
 
     def fetch(self):
-        return self._session.get(self.url, params=self.params)
+        response = self._session.get(self.url, params=self.params)
+        response.raise_for_status()
+        return response
 
     def __str__(self):
         return str(self.url)
