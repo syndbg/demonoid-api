@@ -2,7 +2,7 @@ from lxml import html
 from requests import Session
 
 
-class Url:
+class Url(object):
     """
        The Url class handles building urls with a base url, path and params.
        Also it makes requests to urls and builds a DOM element with lxml.
