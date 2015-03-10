@@ -92,7 +92,7 @@ class Parser:
 
         :param lxml.HtmlElement row: row to parse
         :param urls.Url url_instance: Url used to combine base url's with scrapped links from tr
-        :return: list of scrapped id, title, tracked by status, category url and torrent url
+        :return: scrapped id, title, tracked by status, category url and torrent url
         :rtype: list
         """
         tags = row.xpath(Parser.FIRST_ROW_XPATH)
@@ -172,7 +172,7 @@ class Parser:
         and gets the torrent url. However the torrent url is usually hidden behind a fake spam ad url,
         this is handled.
 
-        :param list of lxml.HtmlElement table_datas: table_datas to parse
+        :param list lxml.HtmlElement table_datas: table_datas to parse
         :return: torrent url from anchor (link) element
         :rtype: str
         """
