@@ -100,7 +100,7 @@ class Parser:
         :rtype: list
         """
         tags = row.xpath(Parser.FIRST_ROW_XPATH)
-        category_url = url_instance.combine(tags[0].get('href'))
+        category_url = tags[0].get('href')
         title = tags[1].text
         # work with the incomplete URL to get str_id
         torrent_url = tags[1].get('href')
@@ -108,7 +108,7 @@ class Parser:
         # complete the torrent URL with BASE_URL
         torrent_url = url_instance.combine(torrent_url)
 
-        # means that torrent is external
+        # means that torrent has external property
         if len(tags) == 3:
             # monkey patch the missing external query param
             category_url += '&external=1'

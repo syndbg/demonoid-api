@@ -66,9 +66,8 @@ class OnlineParserTests(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        url = Url(path='files')
-        cls.dom = url.DOM
-        cls.rows = Parser.get_torrents_rows(cls.dom)
+        cls.url = Url(path='files')
+        cls.rows = Parser.get_torrents_rows(cls.url.DOM)
         cls.date_row = Parser.get_date_row(cls.rows[0])
 
     def test_get_torrents_rows(self):
@@ -120,8 +119,55 @@ class OnlineParserTests(TestCase):
         actual_date = Parser.parse_date(mocked_td)
         self.assertEqual(expected_date, actual_date)
 
-    def test_parse_first_row(self):
-        pass
+    def test_parse_first_row_without_external_torrent_property(self):
+        category_url = 'http://www.demonoid.pw/files/?uid=0&category=0&subcategory=0&language=0&seeded=0&quality=0&query=&sort='
+        title = 'Example torrent'
+        torrent_url = '/files/details/012345/012345678901/'
+        # mock it to test logic and to avoid unpredictable behavior of the online version
+        mocked_category_td = mock.Mock(**{'get.return_value': category_url})
+        mocked_torrent_anchor_td = mock.Mock(text=title, **{'get.return_value': torrent_url})
+        mocked_tags = [mocked_category_td, mocked_torrent_anchor_td]
+        mocked_first_row = mock.Mock(**{'xpath.return_value': mocked_tags})
+
+        result = Parser.parse_first_row(mocked_first_row, self.url)
+        mocked_first_row.xpath.assert_called_with(Parser.FIRST_ROW_XPATH)
+        self.assertEqual(5, len(result))
+        self.assertEqual('012345/012345678901/', result[0])
+        self.assertEqual(title, result[1])
+        self.assertEqual('Demonoid', result[2])
+        mocked_category_td.get.assert_called_with('href')
+        self.assertEqual(category_url, result[3])
+        self.assertEqual(self.url.combine(torrent_url), result[4])
+
+        # assert online version returns correct amount of properties
+        online_result = Parser.parse_first_row(self.rows[1], self.url)
+        self.assertEqual(5, len(online_result))
+
+    def test_parse_first_row_with_external_torrent_property(self):
+        category_url = 'http://www.demonoid.pw/files/?uid=0&category=0&subcategory=0&language=0&seeded=0&quality=0&query=&sort='
+        title = 'Example torrent'
+        torrent_url = '/files/details/012345/012345678901/'
+        # mock it to test logic and to avoid unpredictable behavior of the online version
+        mocked_category_td = mock.Mock(**{'get.return_value': category_url})
+        mocked_torrent_anchor_td = mock.Mock(text=title, **{'get.return_value': torrent_url})
+        mocked_tags = [mocked_category_td, mocked_torrent_anchor_td, 'give external property!']
+        mocked_first_row = mock.Mock(**{'xpath.return_value': mocked_tags})
+
+        result = Parser.parse_first_row(mocked_first_row, self.url)
+        mocked_first_row.xpath.assert_called_with(Parser.FIRST_ROW_XPATH)
+        self.assertEqual(5, len(result))
+        self.assertEqual('012345/012345678901/', result[0])
+        self.assertEqual(title, result[1])
+        self.assertEqual('(external)', result[2])
+        mocked_category_td.get.assert_called_with('href')
+        self.assertEqual(category_url + '&external=1', result[3])
+        self.assertEqual(self.url.combine(torrent_url), result[4])
+
+        mocked_first_row = mock.Mock()
+        self.assertEqual(5, len(result))
+        # assert online version returns correct amount of properties
+        online_result = Parser.parse_first_row(self.rows[1], self.url)
+        self.assertEqual(5, len(online_result))
 
     def test_parse_second_row(self):
         pass
@@ -140,4 +186,3 @@ class OnlineParserTests(TestCase):
 
     def test_is_language(self):
         pass
-
