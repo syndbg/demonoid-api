@@ -1,5 +1,7 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
+
+from pip.req import parse_requirements
 
 
 VERSION = '0.0.1'
@@ -8,11 +10,22 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()
 
 
+def requirements_to_string(path):
+    raw_requirements = parse_requirements(path)
+    return [str(raw.req) for raw in raw_requirements]
+
+using_requirements = requirements_to_string('./requirements/using.pip')
+developing_requirements = requirements_to_string('./requirements/developing.pip')
+
+
+print(developing_requirements)
+
 setup(
     name='demonoid-api',
     version=VERSION,
-    packages=['demonoid'],
-    install_requires=['requests'],
+    packages=find_packages(),
+    install_requires=using_requirements,
+    tests_require=developing_requirements,
     test_suite='tests',
     include_package_data=True,
     license='MIT',
@@ -40,4 +53,5 @@ setup(
     ],
     platforms='any',
     keywords='pypi demonoid api rest client torrent',
+    zip_safe=False,
 )
