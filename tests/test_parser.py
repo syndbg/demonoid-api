@@ -1,5 +1,12 @@
+from datetime import date, datetime
 from sys import version_info
 from unittest import TestCase
+
+
+if version_info >= (3, 3):
+    from unittest import mock
+else:
+    import mock
 
 from lxml.html import HtmlElement
 from requests import Session, HTTPError, Response
@@ -53,32 +60,34 @@ class OfflineParserTests(TestCase):
 class OnlineParserTests(TestCase):
     """
        Test Parser against the current online Demonoid web server.
+       Tests may be a little harder to understand at first due to the usage of `setUpClass`,
+       but that's to prevent spamming Demonoid's web server.
     """
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         url = Url(path='files')
-        self.dom = url.DOM
+        cls.dom = url.DOM
+        cls.rows = Parser.get_torrents_rows(cls.dom)
+        cls.date_row = Parser.get_date_row(cls.rows[0])
 
     def test_get_torrents_rows(self):
-        rows = Parser.get_torrents_rows(self.dom)
-        first_row = rows[0]
-        last_row = rows[-1]
-        self.assertIsInstance(rows, list)
+        first_row = self.rows[0]
+        last_row = self.rows[-1]
+        self.assertIsInstance(self.rows, list)
         # manually confirm that it  captures correct range of torrent rows
         self.assertTrue('added_today' in first_row.getchildren()[0].get('class'))
         # however I noticed that some torrents may have no properties and this test will fail.
         # Lets hope Demonoid staff fixes that. Meanwhile let this fail.
         self.assertIsNotNone(last_row.find('./td/a[@class="subcategory"]'))
         # usual amount of torrent rows per page. Hacky assertion.
-        self.assertEqual(101, len(rows))
+        self.assertEqual(101, len(self.rows))
 
     def test_get_date_row_when_theres_such(self):
-        rows = Parser.get_torrents_rows(self.dom)
-        self.assertIsInstance(Parser.get_date_row(rows[0]), HtmlElement)
+        self.assertIsInstance(self.date_row, HtmlElement)
 
     def test_get_date_when_theres_none(self):
-        rows = Parser.get_torrents_rows(self.dom)
-        self.assertIsNone(Parser.get_date_row(rows[1]))
+        self.assertIsNone(Parser.get_date_row(self.rows[1]))
 
     def test_get_params_with_absolute_url(self):
         url = 'http://www.demonoid.pw/files/?category=0&subcategory=0&quality=0&seeded=2&external=2&query=&sort='
@@ -98,8 +107,18 @@ class OnlineParserTests(TestCase):
         expected_params = {'category': 0, 'subcategory': 0, 'seeded': 2, 'external': 2}
         self.assertDictEqual(expected_params, Parser.get_params(url, ignore_empty=True))
 
-    def test_parse_date(self):
-        pass
+    def test_parse_date_with_date_today(self):
+        result = Parser.parse_date(self.date_row)
+        self.assertIsInstance(result, date)
+        self.assertEqual(result, date.today())
+
+    def test_parse_date_with_string_date(self):
+        date_str = 'Monday, Mar 09, 2015'
+        expected_date = datetime.strptime(date_str, Parser.DATE_STRPTIME_FORMAT).date()
+
+        mocked_td = mock.Mock(text='Added on ' + date_str)
+        actual_date = Parser.parse_date(mocked_td)
+        self.assertEqual(expected_date, actual_date)
 
     def test_parse_first_row(self):
         pass

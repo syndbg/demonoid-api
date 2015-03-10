@@ -81,7 +81,7 @@ class Parser:
         :return: date object from td's text date
         :rtype: datetime.date
         """
-        text = table_data[0].text.split('Added on ')
+        text = table_data.text.split('Added on ')
         # Then it's 'Added today'. Hacky
         if len(text) < 2:
             return date.today()
