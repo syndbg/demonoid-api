@@ -18,8 +18,6 @@ using_requirements = requirements_to_string('./requirements/using.pip')
 developing_requirements = requirements_to_string('./requirements/developing.pip')
 
 
-print(developing_requirements)
-
 setup(
     name='demonoid-api',
     version=VERSION,
