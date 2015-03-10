@@ -44,7 +44,7 @@ class Parser:
         return tds[0] if tds else None
 
     @staticmethod
-    def get_params(url, ignore_empty=True):
+    def get_params(url, ignore_empty=False):
         """
         Static method that parses a given `url` and retrieves `url`'s parameters. Could also ignore empty value parameters.
         Handles parameters-only urls as `q=banana&peel=false`.
@@ -62,12 +62,14 @@ class Parser:
 
         params_dict = {}
         for pair in params_string.split('&'):
-            param, value = pair.split('=')
-            if value and ignore_empty:
-                value = int(value) if value.isdigit() else value
-                params_dict[param] = value
-            else:
-                params_dict[param] = value
+            if not pair:
+                continue
+            splitted = pair.split('=')
+            param, value = splitted
+            if not value and ignore_empty:
+                continue
+            value = int(value) if value.isdigit() else value
+            params_dict[param] = value
         return params_dict
 
     @staticmethod

@@ -67,7 +67,7 @@ class OnlineParserTests(TestCase):
         # manually confirm that it  captures correct range of torrent rows
         self.assertTrue('added_today' in first_row.getchildren()[0].get('class'))
         # however I noticed that some torrents may have no properties and this test will fail.
-        # Lets hope Demonoid staff fixes that
+        # Lets hope Demonoid staff fixes that. Meanwhile let this fail.
         self.assertIsNotNone(last_row.find('./td/a[@class="subcategory"]'))
         # usual amount of torrent rows per page. Hacky assertion.
         self.assertEqual(101, len(rows))
@@ -86,10 +86,17 @@ class OnlineParserTests(TestCase):
         self.assertDictEqual(expected_params, Parser.get_params(url))
 
     def test_get_params_with_empty_url(self):
-        pass
+        self.assertDictEqual({}, Parser.get_params(''))
 
     def test_get_params_with_query_only(self):
-        pass
+        url = '?category=0&subcategory=0&quality=0&seeded=2&external=2&query=&sort='
+        expected_params = {'category': 0, 'subcategory': 0, 'quality': 0, 'seeded': 2, 'external': 2, 'query': '', 'sort': ''}
+        self.assertDictEqual(expected_params, Parser.get_params(url))
+
+    def test_get_params_with_ignore_empty(self):
+        url = '?category=0&subcategory=0&quality=&seeded=2&external=2&query=&sort='
+        expected_params = {'category': 0, 'subcategory': 0, 'seeded': 2, 'external': 2}
+        self.assertDictEqual(expected_params, Parser.get_params(url, ignore_empty=True))
 
     def test_parse_date(self):
         pass
