@@ -27,14 +27,14 @@ class Parser:
 
         :param lxml.HtmlElement dom: the dom to operate on
         :return: returns torrent rows
-        :rtype: list of lxml.HtmlElement
+        :rtype: list lxml.HtmlElement
         """
         return dom.xpath(Parser.TORRENTS_LIST_XPATH)[:-3]  # trim non-torrents
 
     @staticmethod
     def get_date_row(dom):
         """
-        Static method that gets the torrent data element containing the torrents' date. Executes `DATE_TAG_XPATH` on given `dom`.
+        Static method that gets the torrent data element containing the torrents' date. Executes :attr:`DATE_TAG_XPATH <DATE_TAG_XPATH>` on given `dom`.
 
         :param lxml.HtmlElement dom: the dom to operate on
         :return: table data containg torrents' date
@@ -117,12 +117,13 @@ class Parser:
     def parse_second_row(row, url):
         """
         Static method that parses a given table row element by using helper methods `Parser.parse_category_subcategory_and_or_quality`,
-         `Parser.parse_torrent_link` and scrapping torrent's
-        category, subcategory, quality, user, user url, torrent link, size, comments, times completed, seeders and leechers. Used specifically with a torrent's second table row.
+        `Parser.parse_torrent_link` and scrapping torrent's category, subcategory, quality, user, user url, torrent link, size,
+        comments, times completed, seeders and leechers. Used specifically with a torrent's second table row.
 
         :param lxml.HtmlElement row: row to parse
         :param urls.Url url_instance: Url used to combine base url's with scrapped links from tr
-        :return: list of scrapped category, subcategory, quality, user, user url, torrent link, size, comments, times completed, seeders and leechers
+        :return: scrapped category, subcategory, quality, user, user url, torrent link, size, comments, times completed,
+         seeders and leechers
         :rtype: list
         """
         tags = row.findall('./td')
@@ -149,8 +150,8 @@ class Parser:
         Static method that parses a given list of table data elements and using helper methods
         `Parser.is_subcategory`, `Parser.is_quality`, `Parser.is_language`, collect torrent properties.
 
-        :param list of lxml.HtmlElement table_datas: table_datas to parse
-        :return: list of identified category, subcategory and quality.
+        :param list lxml.HtmlElement table_datas: table_datas to parse
+        :return: of identified category, subcategory and quality.
         :rtype: dict
         """
         output = {'category': None, 'subcategory': None, 'quality': None}
