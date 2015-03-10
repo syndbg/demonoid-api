@@ -1,10 +1,22 @@
 Welcome to Demonoid API's documentation!
 ========================================
 
-Contents:
+
+Usage:
+.. toctree::
+   :maxdepth: 2
+
+   installation
+   intro
+
+
+API:
 
 .. toctree::
    :maxdepth: 2
 
-   intro
-   api
+   constants
+   exceptions
+   parser
+   structures
+   urls
