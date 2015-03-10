@@ -23,7 +23,7 @@ class Parser:
     @staticmethod
     def get_torrents_rows(dom):
         """
-        Static method that gets the torrent list rows from the given `dom` by running `TORRENTS_LIST_XPATH` and trims the last() -3 non-torrent rows, which are actually sorting preferences rows.
+        Static method that gets the torrent list rows from the given `dom` by running `TORRENTS_LIST_XPATH` and trims the last() - 3 non-torrent rows, which are actually sorting preferences rows.
 
         :param lxml.HtmlElement dom: the dom to operate on
         :return: returns torrent rows
@@ -32,15 +32,16 @@ class Parser:
         return dom.xpath(Parser.TORRENTS_LIST_XPATH)[:-3]  # trim non-torrents
 
     @staticmethod
-    def get_date_row(dom):
+    def get_date_row(rows):
         """
         Static method that gets the torrent data element containing the torrents' date. Executes :attr:`DATE_TAG_XPATH <DATE_TAG_XPATH>` on given `dom`.
 
-        :param lxml.HtmlElement dom: the dom to operate on
+        :param list lxml.HtmlElement rows: the rows to search in
         :return: table data containg torrents' date
         :rtype: lxml.HtmlElement
         """
-        return dom.xpath(Parser.DATE_TAG_XPATH)[0]
+        tds = rows.xpath(Parser.DATE_TAG_XPATH)
+        return tds[0] if tds else None
 
     @staticmethod
     def get_params(url, ignore_empty=True):
@@ -63,6 +64,7 @@ class Parser:
         for pair in params_string.split('&'):
             param, value = pair.split('=')
             if value and ignore_empty:
+                value = int(value) if value.isdigit() else value
                 params_dict[param] = value
             else:
                 params_dict[param] = value
