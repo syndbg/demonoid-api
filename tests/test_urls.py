@@ -13,6 +13,9 @@ from demonoid.urls import Url
 
 
 class UrlTests(TestCase):
+    """
+        Test Url class against online resources.
+    """
 
     def test_init_default_parameter_values(self):
         u = Url()
