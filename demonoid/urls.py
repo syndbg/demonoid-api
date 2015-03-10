@@ -16,6 +16,7 @@ class Url:
     def __init__(self, base_url=None, path=None, params=None):
         """
         Creates a Url instance.
+
         :param base_url: The url to build from. Default is Url.DEFAULT_BASE_URL
         :type base_url: str or None
         :param path: The path to append to the base url. Default is ''
@@ -34,6 +35,7 @@ class Url:
     def add_params(self, params):
         """
         Updates existing `self.params` with given `params`.
+
         :param params: Parameters to add
         :type params: dict
         :return: self
@@ -45,6 +47,7 @@ class Url:
     def add_param(self, key, value):
         """
         Updates or adds a `key`=`value` parameter in existing `self.params`.
+
         :param str key: Parameter name
         :param str value: Parameter value
         :return: self
@@ -57,6 +60,7 @@ class Url:
     def url(self):
         """
         Using `self.combine`, gives the url that will be used to make requests to.
+
         :return: combined self.base_url and self.path
         :rtype: string
         """
@@ -67,6 +71,7 @@ class Url:
         Gives a combined `self.BASE_URL` with the given `path`.
         Used to build urls without modifying the current `self.path`.
         Handles conflicts of trailing or preceding slashes.
+
         :param str path: `path` to append
         :return: combined `self.base_url` and given `path`.
         :rtype: str
@@ -84,6 +89,7 @@ class Url:
     def DOM(self):
         """
         Lazy gets (or builds if needed) a DOM from response's text of combined url.
+
         :return: DOM built from response
         :rtype: lxml.HtmlElement
         """
@@ -95,6 +101,7 @@ class Url:
         """
         Makes a request and updates `self._DOM`.
         Worth using only if you manually change `self.base_url` or `self.path`.
+
         :return: self
         :rtype: Url
         """
@@ -106,6 +113,7 @@ class Url:
         """
         Makes a request to combined url with `self._params` as parameters.
         If the server at combined url responds with Client or Server error, raises an exception.
+
         :return: the response from combined url
         :rtype: requests.models.Response
         """
@@ -117,7 +125,8 @@ class Url:
         """
         String representation of combined url.
         However as it is now, it doesn't add the params from `self.params`.
-        Sorry, it'll be fixed
+        Sorry, it'll be fixed.
+
         :return: combined url.
         :rtype: str
         """
