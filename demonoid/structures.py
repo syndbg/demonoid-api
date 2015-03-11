@@ -10,7 +10,7 @@ from .urls import Url
 class Torrent(object):
 
     def __init__(self, date, id, title, tracked_by, category_url, url, category, subcategory,
-                 quality, user, user_url, torrent_link, size, comments, times_completed,
+                 quality, language, user, user_url, torrent_link, size, comments, times_completed,
                  seeders, leechers):
         self.date = date
         self.id = id  # As '3159986/003226642800/'
@@ -21,6 +21,7 @@ class Torrent(object):
         self.category = category
         self.subcategory = subcategory or Category.ALL
         self.quality = quality or Quality.ALL
+        self.language = language or None
 
         self.user = user
         self.user_url = user_url

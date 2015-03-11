@@ -121,18 +121,17 @@ class Parser:
     def parse_second_row(row, url):
         """
         Static method that parses a given table row element by using helper methods `Parser.parse_category_subcategory_and_or_quality`,
-        `Parser.parse_torrent_link` and scrapping torrent's category, subcategory, quality, user, user url, torrent link, size,
+        `Parser.parse_torrent_link` and scrapping torrent's category, subcategory, quality, language, user, user url, torrent link, size,
         comments, times completed, seeders and leechers. Used specifically with a torrent's second table row.
 
         :param lxml.HtmlElement row: row to parse
         :param urls.Url url_instance: Url used to combine base url's with scrapped links from tr
-        :return: scrapped category, subcategory, quality, user, user url, torrent link, size, comments, times completed,
+        :return: scrapped category, subcategory, quality, language, user, user url, torrent link, size, comments, times completed,
          seeders and leechers
         :rtype: list
         """
         tags = row.findall('./td')
-        category, subcategory, quality = Parser.parse_category_subcategory_and_or_quality(tags[0])
-
+        category, subcategory, quality, language = Parser.parse_torrent_properties(tags[0])
         user_info = tags[1].find('./a')
         user = user_info.text_content()
         user_url = url.combine(user_info.get('href'))
@@ -140,66 +139,68 @@ class Parser:
         # Two urls - one is spam, second is torrent url.
         # Don't combine it with BASE_URL, since it's an absolute url.
         torrent_link = Parser.parse_torrent_link(tags[2])
-        size = tags[3].text
+        size = tags[3].text  # as 10.5 GB
         comments = tags[4].text
         times_completed = tags[5].text
         seeders = tags[6].text
         leechers = tags[7].text
-        return [category, subcategory, quality, user, user_url, torrent_link,
+        return [category, subcategory, quality, language, user, user_url, torrent_link,
                 size, comments, times_completed, seeders, leechers]
 
     @staticmethod
-    def parse_category_subcategory_and_or_quality(table_datas):
+    def parse_torrent_properties(table_datas):
         """
         Static method that parses a given list of table data elements and using helper methods
-        `Parser.is_subcategory`, `Parser.is_quality`, `Parser.is_language`, collect torrent properties.
+        `Parser.is_subcategory`, `Parser.is_quality`, `Parser.is_language`, collects torrent properties.
 
         :param list lxml.HtmlElement table_datas: table_datas to parse
-        :return: of identified category, subcategory and quality.
+        :return: identified category, subcategory, quality and languages.
         :rtype: dict
         """
-        output = {'category': None, 'subcategory': None, 'quality': None}
-        for td in table_datas:
+        output = {'category': table_datas[0].text, 'subcategory': None, 'quality': None, 'language': None}
+        for i in range(1, len(table_datas)):
+            td = table_datas[i]
             url = td.get('href')
-            if Parser.is_subcategory(url):
+            params = Parser.get_params(url)
+            if Parser.is_subcategory(params) and not output['subcategory']:
                 output['subcategory'] = td.text
-            elif Parser.is_quality(url):
+            elif Parser.is_quality(params) and not output['quality']:
                 output['quality'] = td.text
-            elif Parser.is_language(url):
+            elif Parser.is_language(params) and not output['language']:
                 output['language'] = td.text
         return output
 
     @staticmethod
-    def parse_torrent_link(table_datas):
+    def parse_torrent_link(table_data):
         """
         Static method that parses list of table data, finds all anchor elements
         and gets the torrent url. However the torrent url is usually hidden behind a fake spam ad url,
         this is handled.
 
-        :param list lxml.HtmlElement table_datas: table_datas to parse
+        :param list lxml.HtmlElement table_data: table_data tag to parse
         :return: torrent url from anchor (link) element
         :rtype: str
         """
-        anchors = table_datas.findall('./a')
+        anchors = table_data.findall('./a')
         link_tag = anchors[0] if len(anchors) < 2 else anchors[1]
         return link_tag.get('href')
 
     @staticmethod
     def is_subcategory(params):
         """
-        Static method that given a dict of parameters, casts parameters' subcategory value to int
+        Static method that given a dict of url  parameters, casts parameters' subcategory value to int
         and compares it to default search query value - Category.ALL. Which is also the default `ALL` search query value for all subcategories.
 
         :param dict params: parameters to get subcategory value from
         :return: if given parameters' subcategory is different from Category.ALL or not
         :rtype: bool
         """
-        return Category.ALL != int(params['subcategory'])
+        return Category.ALL.value != int(params['subcategory'])
 
     @staticmethod
     def is_quality(params):
         """
-        Static method that given a dict of parameters, casts parameters' quality value to int
+        Static method that given a dict of url parameters, casts parameters' quality value to int
         and compares it to default search query value - Quality.ALL.
 
         :param dict params: parameters to get quality value from
@@ -211,7 +212,7 @@ class Parser:
     @staticmethod
     def is_language(params):
         """
-        Static method that given a dict of parameters, casts parameters' language value to int
+        Static method that given a dict of url  parameters, casts parameters' language value to int
         and compares it to default search query value - Language.ALL.
 
         :param dict params: parameters to get language value from
