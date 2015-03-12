@@ -88,9 +88,9 @@ class List(object):
         current_date = None
         torrent_info = []  # 2 rows hold info about 1 torrent
         for row in rows:
-            date_row = Parser.get_date_row(row)
-            if date_row:
-                current_date = Parser.parse_date(date_row)
+            date_td = Parser.get_date_td(row)
+            if date_td:
+                current_date = Parser.parse_date(date_td)
             elif len(torrent_info) < 2:
                 torrent_info.append(row)
             else:

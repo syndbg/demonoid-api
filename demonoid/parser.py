@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from datetime import date, datetime
 
 from .constants import Category, Language, Quality
@@ -32,7 +34,7 @@ class Parser:
         return dom.xpath(Parser.TORRENTS_LIST_XPATH)[:-3]  # trim non-torrents
 
     @staticmethod
-    def get_date_row(rows):
+    def get_date_td(rows):
         """
         Static method that gets the torrent data element containing the torrents' date. Executes :attr:`DATE_TAG_XPATH <DATE_TAG_XPATH>` on given `dom`.
 
@@ -100,11 +102,12 @@ class Parser:
         :rtype: list
         """
         tags = row.xpath(Parser.FIRST_ROW_XPATH)
-        category_url = tags[0].get('href')
-        title = tags[1].text
+        category_url = url_instance.combine(tags[0].get('href'))
+        title = unicode(tags[1].text)
         # work with the incomplete URL to get str_id
         torrent_url = tags[1].get('href')
         str_id = torrent_url.split('details/')[1]
+        str_id = str_id[:-1] if str_id.endswith('/') else str_id
         # complete the torrent URL with BASE_URL
         torrent_url = url_instance.combine(torrent_url)
 
