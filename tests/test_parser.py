@@ -268,24 +268,6 @@ class OnlineParserTests(TestCase):
     def test_get_date_when_theres_none(self):
         self.assertIsNone(Parser.get_date_row(self.rows[1]))
 
-    def test_get_params_with_absolute_url(self):
-        url = 'http://www.demonoid.pw/files/?category=0&subcategory=0&quality=0&seeded=2&external=2&query=&sort='
-        expected_params = {'category': 0, 'subcategory': 0, 'quality': 0, 'seeded': 2, 'external': 2, 'query': '', 'sort': ''}
-        self.assertDictEqual(expected_params, Parser.get_params(url))
-
-    def test_get_params_with_empty_url(self):
-        self.assertDictEqual({}, Parser.get_params(''))
-
-    def test_get_params_with_query_only(self):
-        url = '?category=0&subcategory=0&quality=0&seeded=2&external=2&query=&sort='
-        expected_params = {'category': 0, 'subcategory': 0, 'quality': 0, 'seeded': 2, 'external': 2, 'query': '', 'sort': ''}
-        self.assertDictEqual(expected_params, Parser.get_params(url))
-
-    def test_get_params_with_ignore_empty(self):
-        url = '?category=0&subcategory=0&quality=&seeded=2&external=2&query=&sort='
-        expected_params = {'category': 0, 'subcategory': 0, 'seeded': 2, 'external': 2}
-        self.assertDictEqual(expected_params, Parser.get_params(url, ignore_empty=True))
-
     def test_parse_date_with_date_today(self):
         result = Parser.parse_date(self.date_row)
         self.assertIsInstance(result, date)
